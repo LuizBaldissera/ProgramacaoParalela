@@ -371,3 +371,51 @@ plt.xticks(rotation=0)
 plt.grid(axis='y')
 plt.tight_layout()
 plt.show()
+
+# === Monta DataFrame ===
+df["n"] = df["n"].astype(int)
+df["processes"] = df["processes"].astype(int)
+df["time"] = df["time"].astype(float)
+
+# === Calcula Speedup e Eficiência ===
+speedup = []
+eficiencia = []
+
+for exe in df["Executable"].unique():
+    for n_val in df[df["Executable"] == exe]["n"].unique():
+        subset = df[(df["Executable"] == exe) & (df["n"] == n_val)]
+        t2 = subset[subset["processes"] == 2]["time"].values[0]
+        for _, row in subset.iterrows():
+            sp = t2 / row["time"]
+            ef = sp / row["processes"]
+            speedup.append(sp)
+            eficiencia.append(ef)
+
+df["speedup"] = speedup
+df["eficiencia"] = eficiencia
+
+# === Gera gráficos ===
+for exe in df["Executable"].unique():
+    subset = df[df["Executable"] == exe]
+
+    plt.figure(figsize=(8,5))
+    for n_val in subset["n"].unique():
+        data = subset[subset["n"] == n_val]
+        plt.plot(data["processes"], data["speedup"], marker='o', label=f"n={n_val}")
+    plt.title(f"Speedup - {exe}")
+    plt.xlabel("Número de processos")
+    plt.ylabel("Speedup")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+    plt.figure(figsize=(8,5))
+    for n_val in subset["n"].unique():
+        data = subset[subset["n"] == n_val]
+        plt.plot(data["processes"], data["eficiencia"], marker='s', label=f"n={n_val}")
+    plt.title(f"Eficiência - {exe}")
+    plt.xlabel("Número de processos")
+    plt.ylabel("Eficiência")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
